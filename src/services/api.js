@@ -1,4 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
+import axios from "axios";
+
+/* =======================
+   Backend API Setup
+   ======================= */
+const API_URL = import.meta.env.VITE_API_URL;
+
+const api = axios.create({
+  baseURL: API_URL,
+});
 
 /* =======================
    Supabase Client Setup
@@ -11,8 +21,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 /* =======================
    MOCK DATA (TEMP)
    ======================= */
-
-// 🎵 Tracks
 const MOCK_TRACKS = [
   {
     id: "1",
@@ -33,7 +41,7 @@ const MOCK_TRACKS = [
     category_id: "music",
   },
   {
-    id: "2",
+    id: "3",
     title: "Podcast Episode 1",
     artist: "Tech Talks",
     audio_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
@@ -42,13 +50,11 @@ const MOCK_TRACKS = [
   },
 ];
 
-// 🧩 Categories
 const MOCK_CATEGORIES = [
   { id: "music", name: "Music" },
   { id: "podcast", name: "Podcast" },
 ];
 
-// 📂 Playlists
 const MOCK_PLAYLISTS = [
   {
     id: "1",
@@ -60,22 +66,22 @@ const MOCK_PLAYLISTS = [
    API FUNCTIONS
    ======================= */
 
-// 🎵 Fetch tracks
+// Fetch tracks
 export const getTracks = async () => {
   return MOCK_TRACKS;
 };
 
-// 🧩 Fetch categories
+// Fetch categories
 export const getCategories = async () => {
   return MOCK_CATEGORIES;
 };
 
-// 📂 Fetch playlists
+// Fetch playlists
 export const getPlaylists = async () => {
   return MOCK_PLAYLISTS;
 };
 
-// ⬆️ Upload track (Supabase – keep for later)
+// Upload track
 export const uploadTrack = async (file, metadata) => {
   try {
     const { error } = await supabase.storage
@@ -97,5 +103,18 @@ export const uploadTrack = async (file, metadata) => {
   }
 };
 
+/* =======================
+   AUTH APIs
+   ======================= */
 
+// Login (Admin)
+export const loginUser = async (credentials) => {
+  try {
+    const res = await api.post("/api/admin/login", credentials);
+    return res.data;
+  } catch (err) {
+    console.error("Login failed:", err);
+    throw new Error(err.response?.data?.message || "Login failed");
+  }
+};
 
