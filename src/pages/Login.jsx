@@ -17,10 +17,17 @@ const Login = () => {
     setError("");
 
     try {
-      const user = await loginUser({ email, password }); // centralized API call
-      // Save token/user in localStorage or context if available
-      localStorage.setItem("token", user.token || ""); 
-      navigate("/"); // redirect after login
+      const user = await loginUser({ email, password }); // API call
+      if (!user.token) throw new Error("Invalid login response");
+
+      // 1️⃣ Save token in localStorage
+      localStorage.setItem("token", user.token);
+
+      // 2️⃣ Optional: save user info
+      localStorage.setItem("userEmail", user.email);
+
+      // 3️⃣ Redirect to dashboard/home page
+      navigate("/dashboard"); 
     } catch (err) {
       console.error("Login failed:", err);
       setError(err.message || "Login failed. Try again.");
@@ -37,14 +44,12 @@ const Login = () => {
       >
         <h1 className="text-white text-2xl font-bold text-center">Login</h1>
 
-        {/* Global error UI */}
         {error && <ErrorFallback message={error} />}
 
         <Input
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mb-2"
           required
         />
 
@@ -53,7 +58,6 @@ const Login = () => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mb-2"
           required
         />
 
@@ -66,4 +70,3 @@ const Login = () => {
 };
 
 export default Login;
-
