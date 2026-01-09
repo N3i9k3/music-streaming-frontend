@@ -1,29 +1,32 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../services/api";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // store user info here
   const [loading, setLoading] = useState(true);
 
+  // On app load, check localStorage for token
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user || null);
-      setLoading(false);
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null);
-      }
-    );
-
-    return () => listener.subscription.unsubscribe();
+    const token = localStorage.getItem("token");
+    if (token) {
+      setUser({ token }); // simple user object
+    }
+    setLoading(false);
   }, []);
 
+  const login = (userData) => {
+    setUser(userData);
+    localStorage.setItem("token", userData.token);
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("token");
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
