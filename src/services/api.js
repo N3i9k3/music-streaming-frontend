@@ -19,10 +19,10 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /* =======================
-   API FUNCTIONS
+   Tracks & Categories
    ======================= */
 
-// 🎵 Fetch all tracks (music + podcasts)
+// Fetch all tracks
 export const getTracks = async () => {
   try {
     const res = await api.get("/api/tracks");
@@ -33,7 +33,7 @@ export const getTracks = async () => {
   }
 };
 
-// 🎵 Fetch categories
+// Fetch categories
 export const getCategories = async () => {
   try {
     const res = await api.get("/api/categories");
@@ -44,7 +44,7 @@ export const getCategories = async () => {
   }
 };
 
-// 🎙️ Fetch all podcasts
+// Fetch all podcasts
 export const getAllPodcasts = async () => {
   try {
     const res = await api.get("/api/podcasts");
@@ -55,7 +55,7 @@ export const getAllPodcasts = async () => {
   }
 };
 
-// 🎙️ Fetch single podcast by ID
+// Fetch single podcast detail
 export const getPodcastDetail = async (id) => {
   try {
     const res = await api.get(`/api/podcasts/${id}`);
@@ -66,34 +66,70 @@ export const getPodcastDetail = async (id) => {
   }
 };
 
-// Fetch playlists
+/* =======================
+   Playlist APIs
+   ======================= */
+
+// Fetch all playlists
 export const getPlaylists = async () => {
-  return MOCK_PLAYLISTS;
-};
-
-// Create new playlist (TEMP for frontend)
-export const createNewPlaylist = async (name) => {
-  return {
-    id: String(Date.now()),
-    name,
-  };
-};
-
-
-// 🎵 Add track to playlist
-export const addToPlaylist = async (playlistId, trackId) => {
   try {
-    const res = await api.post(`/api/playlists/${playlistId}/add`, {
-      trackId,
-    });
+    const res = await api.get("/api/playlists");
     return res.data;
   } catch (err) {
-    console.error("addToPlaylist error:", err);
-    throw new Error("Failed to add track");
+    console.error("getPlaylists error:", err);
+    return [];
   }
 };
 
-// ⬆️ Upload track (Admin)
+// Create new playlist
+export const createNewPlaylist = async (name) => {
+  try {
+    const res = await api.post("/api/playlists", { name });
+    return res.data;
+  } catch (err) {
+    console.error("createNewPlaylist error:", err);
+    throw new Error("Failed to create playlist");
+  }
+};
+
+// Get playlist details
+export const getPlaylistDetail = async (playlistId) => {
+  try {
+    const res = await api.get(`/api/playlists/${playlistId}`);
+    return res.data;
+  } catch (err) {
+    console.error("getPlaylistDetail error:", err);
+    return null;
+  }
+};
+
+// Add track to playlist
+export const addToPlaylist = async (playlistId, trackId) => {
+  try {
+    const res = await api.post(`/api/playlists/${playlistId}/add`, { trackId });
+    return res.data;
+  } catch (err) {
+    console.error("addToPlaylist error:", err);
+    throw new Error("Failed to add track to playlist");
+  }
+};
+
+// Remove track from playlist
+export const removeTrackFromPlaylist = async (playlistId, trackId) => {
+  try {
+    const res = await api.post(`/api/playlists/${playlistId}/remove`, { trackId });
+    return res.data;
+  } catch (err) {
+    console.error("removeTrackFromPlaylist error:", err);
+    throw new Error("Failed to remove track from playlist");
+  }
+};
+
+/* =======================
+   Admin / Upload
+   ======================= */
+
+// Upload track to Supabase + backend
 export const uploadTrack = async (file, metadata) => {
   try {
     // Upload audio file to Supabase storage
@@ -122,10 +158,10 @@ export const uploadTrack = async (file, metadata) => {
 };
 
 /* =======================
-   AUTH APIs
+   Auth APIs
    ======================= */
 
-// 👤 Admin Login
+// Admin login
 export const loginUser = async (credentials) => {
   try {
     const res = await api.post("/api/admin/login", credentials);
