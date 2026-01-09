@@ -76,6 +76,11 @@ export const getCategories = async () => {
   return MOCK_CATEGORIES;
 };
 
+// 🎙️ Fetch all podcasts
+export const getAllPodcasts = async () => {
+  return MOCK_TRACKS.filter(track => track.category_id === "podcast");
+};
+
 // Fetch playlists
 export const getPlaylists = async () => {
   return MOCK_PLAYLISTS;
