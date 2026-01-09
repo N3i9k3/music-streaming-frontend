@@ -66,27 +66,19 @@ export const getPodcastDetail = async (id) => {
   }
 };
 
-// 🎵 Fetch playlists
+// Fetch playlists
 export const getPlaylists = async () => {
-  try {
-    const res = await api.get("/api/playlists");
-    return res.data;
-  } catch (err) {
-    console.error("getPlaylists error:", err);
-    return [];
-  }
+  return MOCK_PLAYLISTS;
 };
 
-// 🎵 Create playlist
-export const createPlaylist = async (name) => {
-  try {
-    const res = await api.post("/api/playlists", { name });
-    return res.data;
-  } catch (err) {
-    console.error("createPlaylist error:", err);
-    throw new Error("Failed to create playlist");
-  }
+// Create new playlist (TEMP for frontend)
+export const createNewPlaylist = async (name) => {
+  return {
+    id: String(Date.now()),
+    name,
+  };
 };
+
 
 // 🎵 Add track to playlist
 export const addToPlaylist = async (playlistId, trackId) => {
