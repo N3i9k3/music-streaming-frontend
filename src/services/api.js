@@ -13,19 +13,19 @@ const api = axios.create({
 /* =======================
    Supabase Client Setup
    ======================= */
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 /* =======================
-   Tracks & Categories
+   TRACKS & CATEGORIES
    ======================= */
 
 // Fetch all tracks
 export const getTracks = async () => {
   try {
-    const res = await api.get("/api/tracks");
+    const res = await api.get("/tracks");
     return res.data;
   } catch (err) {
     console.error("getTracks error:", err);
@@ -36,7 +36,7 @@ export const getTracks = async () => {
 // Fetch categories
 export const getCategories = async () => {
   try {
-    const res = await api.get("/api/categories");
+    const res = await api.get("/categories");
     return res.data;
   } catch (err) {
     console.error("getCategories error:", err);
@@ -44,10 +44,13 @@ export const getCategories = async () => {
   }
 };
 
-// Fetch all podcasts
+/* =======================
+   PODCAST APIs
+   ======================= */
+
 export const getAllPodcasts = async () => {
   try {
-    const res = await api.get("/api/podcasts");
+    const res = await api.get("/podcasts");
     return res.data;
   } catch (err) {
     console.error("getAllPodcasts error:", err);
@@ -55,10 +58,9 @@ export const getAllPodcasts = async () => {
   }
 };
 
-// Fetch single podcast detail
 export const getPodcastDetail = async (id) => {
   try {
-    const res = await api.get(`/api/podcasts/${id}`);
+    const res = await api.get(`/podcasts/${id}`);
     return res.data;
   } catch (err) {
     console.error("getPodcastDetail error:", err);
@@ -67,13 +69,12 @@ export const getPodcastDetail = async (id) => {
 };
 
 /* =======================
-   Playlist APIs
+   PLAYLIST APIs
    ======================= */
 
-// Fetch all playlists
 export const getPlaylists = async () => {
   try {
-    const res = await api.get("/api/playlists");
+    const res = await api.get("/playlists");
     return res.data;
   } catch (err) {
     console.error("getPlaylists error:", err);
@@ -81,10 +82,9 @@ export const getPlaylists = async () => {
   }
 };
 
-// Create new playlist
 export const createNewPlaylist = async (name) => {
   try {
-    const res = await api.post("/api/playlists", { name });
+    const res = await api.post("/playlists", { name });
     return res.data;
   } catch (err) {
     console.error("createNewPlaylist error:", err);
@@ -92,10 +92,9 @@ export const createNewPlaylist = async (name) => {
   }
 };
 
-// Get playlist details
 export const getPlaylistDetail = async (playlistId) => {
   try {
-    const res = await api.get(`/api/playlists/${playlistId}`);
+    const res = await api.get(`/playlists/${playlistId}`);
     return res.data;
   } catch (err) {
     console.error("getPlaylistDetail error:", err);
@@ -103,49 +102,46 @@ export const getPlaylistDetail = async (playlistId) => {
   }
 };
 
-// Add track to playlist
 export const addToPlaylist = async (playlistId, trackId) => {
   try {
-    const res = await api.post(`/api/playlists/${playlistId}/add`, { trackId });
+    const res = await api.post(`/playlists/${playlistId}/add`, { trackId });
     return res.data;
   } catch (err) {
     console.error("addToPlaylist error:", err);
-    throw new Error("Failed to add track to playlist");
+    throw new Error("Failed to add track");
   }
 };
 
-// Remove track from playlist
 export const removeTrackFromPlaylist = async (playlistId, trackId) => {
   try {
-    const res = await api.post(`/api/playlists/${playlistId}/remove`, { trackId });
+    const res = await api.post(`/playlists/${playlistId}/remove`, { trackId });
     return res.data;
   } catch (err) {
     console.error("removeTrackFromPlaylist error:", err);
-    throw new Error("Failed to remove track from playlist");
+    throw new Error("Failed to remove track");
   }
 };
 
 /* =======================
-   Admin / Upload
+   ADMIN UPLOAD
    ======================= */
 
-// Upload track to Supabase + backend
 export const uploadTrack = async (file, metadata) => {
   try {
-    // Upload audio file to Supabase storage
+    // Upload audio file to Supabase
     const { data, error } = await supabase.storage
       .from("tracks")
       .upload(`audio/${Date.now()}_${file.name}`, file);
 
     if (error) throw error;
 
-    // Get public URL
+    // Public URL
     const publicUrl = supabase.storage
       .from("tracks")
       .getPublicUrl(data.path).data.publicUrl;
 
-    // Save metadata + URL in backend database
-    const res = await api.post("/api/tracks/upload", {
+    // Save track metadata in backend
+    const res = await api.post("/tracks/upload", {
       ...metadata,
       audio_url: publicUrl,
     });
@@ -158,10 +154,9 @@ export const uploadTrack = async (file, metadata) => {
 };
 
 /* =======================
-   Auth APIs
+   AUTH APIs
    ======================= */
 
-// Admin login
 export const loginUser = async (credentials) => {
   try {
     const res = await api.post("/api/admin/login", credentials);
