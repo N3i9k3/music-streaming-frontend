@@ -19,99 +19,113 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /* =======================
-   MOCK DATA (TEMP)
-   ======================= */
-const MOCK_TRACKS = [
-  {
-    id: "1",
-    title: "Believer",
-    artist: "Imagine Dragons",
-    audio_url:
-      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    cover_url: "https://i.imgur.com/8Km9tLL.jpg",
-    category_id: "music",
-  },
-  {
-    id: "2",
-    title: "Shape of You",
-    artist: "Ed Sheeran",
-    audio_url:
-      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    cover_url: "https://i.imgur.com/zYxDCQT.jpg",
-    category_id: "music",
-  },
-  {
-    id: "3",
-    title: "Podcast Episode 1",
-    artist: "Tech Talks",
-    audio_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    cover_url: "https://i.imgur.com/ZXBtVw7.jpg",
-    category_id: "podcast",
-  },
-];
-
-const MOCK_CATEGORIES = [
-  { id: "music", name: "Music" },
-  { id: "podcast", name: "Podcast" },
-];
-
-const MOCK_PLAYLISTS = [
-  {
-    id: "1",
-    name: "My Favorites",
-  },
-];
-
-/* =======================
    API FUNCTIONS
    ======================= */
 
-// Fetch tracks
+// 🎵 Fetch all tracks (music + podcasts)
 export const getTracks = async () => {
-  return MOCK_TRACKS;
+  try {
+    const res = await api.get("/api/tracks");
+    return res.data;
+  } catch (err) {
+    console.error("getTracks error:", err);
+    return [];
+  }
 };
 
-// Fetch categories
+// 🎵 Fetch categories
 export const getCategories = async () => {
-  return MOCK_CATEGORIES;
+  try {
+    const res = await api.get("/api/categories");
+    return res.data;
+  } catch (err) {
+    console.error("getCategories error:", err);
+    return [];
+  }
 };
 
 // 🎙️ Fetch all podcasts
 export const getAllPodcasts = async () => {
-  return MOCK_TRACKS.filter(track => track.category_id === "podcast");
+  try {
+    const res = await api.get("/api/podcasts");
+    return res.data;
+  } catch (err) {
+    console.error("getAllPodcasts error:", err);
+    return [];
+  }
 };
 
-// 🎙️ Fetch single podcast detail
+// 🎙️ Fetch single podcast by ID
 export const getPodcastDetail = async (id) => {
-  return MOCK_TRACKS.find(
-    (track) => track.id === id && track.category_id === "podcast"
-  );
+  try {
+    const res = await api.get(`/api/podcasts/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error("getPodcastDetail error:", err);
+    return null;
+  }
 };
 
-// Fetch playlists
+// 🎵 Fetch playlists
 export const getPlaylists = async () => {
-  return MOCK_PLAYLISTS;
+  try {
+    const res = await api.get("/api/playlists");
+    return res.data;
+  } catch (err) {
+    console.error("getPlaylists error:", err);
+    return [];
+  }
 };
 
-// Upload track
+// 🎵 Create playlist
+export const createPlaylist = async (name) => {
+  try {
+    const res = await api.post("/api/playlists", { name });
+    return res.data;
+  } catch (err) {
+    console.error("createPlaylist error:", err);
+    throw new Error("Failed to create playlist");
+  }
+};
+
+// 🎵 Add track to playlist
+export const addToPlaylist = async (playlistId, trackId) => {
+  try {
+    const res = await api.post(`/api/playlists/${playlistId}/add`, {
+      trackId,
+    });
+    return res.data;
+  } catch (err) {
+    console.error("addToPlaylist error:", err);
+    throw new Error("Failed to add track");
+  }
+};
+
+// ⬆️ Upload track (Admin)
 export const uploadTrack = async (file, metadata) => {
   try {
-    const { error } = await supabase.storage
+    // Upload audio file to Supabase storage
+    const { data, error } = await supabase.storage
       .from("tracks")
-      .upload(file.name, file);
+      .upload(`audio/${Date.now()}_${file.name}`, file);
 
     if (error) throw error;
 
-    const { error: metaError } = await supabase
+    // Get public URL
+    const publicUrl = supabase.storage
       .from("tracks")
-      .insert([metadata]);
+      .getPublicUrl(data.path).data.publicUrl;
 
-    if (metaError) throw metaError;
+    // Save metadata + URL in backend database
+    const res = await api.post("/api/tracks/upload", {
+      ...metadata,
+      audio_url: publicUrl,
+    });
 
-    return true;
+    return res.data;
   } catch (err) {
-    console.error("uploadTrack failed:", err.message || err);
-    throw new Error("Failed to upload track");
+    console.error("uploadTrack failed:", err);
+    throw new Error("Track upload failed");
   }
 };
 
@@ -119,7 +133,7 @@ export const uploadTrack = async (file, metadata) => {
    AUTH APIs
    ======================= */
 
-// Login (Admin)
+// 👤 Admin Login
 export const loginUser = async (credentials) => {
   try {
     const res = await api.post("/api/admin/login", credentials);
